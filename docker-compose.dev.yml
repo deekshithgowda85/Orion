@@ -1,0 +1,19 @@
+name: orion-dev
+
+services:
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    environment:
+      NEXT_PUBLIC_MOCK_MODE: "true"
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev:mock -- --hostname 0.0.0.0"
+
+volumes:
+  frontend-node-modules:

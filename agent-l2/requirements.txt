@@ -1,0 +1,10 @@
+temporalio>=1.8.0,<2.0.0
+pydantic>=2.6,<3.0
+inngest>=0.5.0,<0.6.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-dotenv>=1.0.0
+# --- Layer 2 ---
+langgraph>=0.2.50
+groq>=0.13.0
+asyncpg>=0.29.0

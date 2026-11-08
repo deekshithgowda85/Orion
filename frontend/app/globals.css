@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+/* ---------------------------------------------------------------
+   Palette — editorial research workspace
+   --------------------------------------------------------------- */
+:root {
+  --font-inter: "Inter Variable";
+  --font-syne: "Syne Variable";
+  --font-jetbrains: "JetBrains Mono Variable";
+  --background: #ffffff;
+  --foreground: #0d253d;
+  --surface: #f6f9fc;
+  --card: #ffffff;
+  --card-elevated: #f5e9d4;
+  --muted: #edf2f6;
+  --muted-foreground: #64748d;
+  --border: #e3e8ee;
+  --input: #ffffff;
+  --ring: #533afd;
+
+  --primary: #533afd;
+  --primary-foreground: #ffffff;
+  --data: #533afd;
+  --warning: #9b6829;
+  --success: #287c5b;
+  --danger: #b83a53;
+
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-elevated: var(--card-elevated);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-cyan: var(--data);
+  --color-amber: var(--warning);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-in-up: in-up 0.35s ease-out both;
+  --animate-pulse-ring: pulse-ring 1.8s ease-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+}
+
+@keyframes in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(83 58 253 / 0.35);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgb(83 58 253 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(83 58 253 / 0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(83 58 253 / 0.25), 0 0 18px 2px rgb(83 58 253 / 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgb(83 58 253 / 0), 0 0 28px 6px rgb(83 58 253 / 0.2);
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(700px 260px at 8% -4%, rgb(245 233 212 / 0.8), transparent 68%),
+      radial-gradient(760px 280px at 92% -6%, rgb(249 107 238 / 0.12), transparent 70%),
+      radial-gradient(600px 260px at 52% 0%, rgb(83 58 253 / 0.1), transparent 72%);
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: rgb(83 58 253 / 0.2);
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5df;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .node-pulse {
+    animation: node-pulse 1.6s ease-in-out infinite;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #edf2f6 25%, #ffffff 50%, #edf2f6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+  .terminal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+  }
+}
+
+.workflow-editor-app {
+  background: #fbfcfe;
+}
+
+.workflow-editor-topbar {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgb(255 255 255 / 0.96);
+  padding: 0.75rem 1rem;
+}
+
+.workflow-editor-topbar-button,
+.workflow-editor-icon-button {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0 0.75rem;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.workflow-editor-icon-button {
+  width: 2.25rem;
+  padding: 0;
+  color: var(--muted-foreground);
+}
+
+.workflow-editor-topbar-button:hover,
+.workflow-editor-icon-button:hover {
+  border-color: #a8c3de;
+  background: var(--muted);
+}
+
+.workflow-editor-workspace {
+  display: flex;
+  min-height: calc(100vh - 64px);
+}
+
+.workflow-editor-leftbar {
+  z-index: 5;
+  display: flex;
+  width: 248px;
+  flex: 0 0 248px;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.workflow-editor-node-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  padding: 0.55rem;
+  text-align: left;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.workflow-editor-node-option:hover {
+  border-color: rgb(83 58 253 / 0.2);
+  background: rgb(83 58 253 / 0.05);
+}
+
+.workflow-editor-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.workflow-editor-rightbar {
+  display: flex;
+  width: 300px;
+  flex: 0 0 300px;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.workflow-editor-inspector {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.workflow-editor-toolbar {
+  display: flex;
+  min-height: 64px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+}
+
+.workflow-editor-canvas {
+  position: relative;
+  min-height: calc(100vh - 128px);
+  flex: 1;
+  overflow: hidden;
+  background-color: #fbfcfe;
+  background-image: radial-gradient(#dbe4ed 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@media (max-width: 800px) {
+  .workflow-editor-leftbar {
+    width: 196px;
+    flex-basis: 196px;
+  }
+
+  .workflow-editor-rightbar {
+    width: 260px;
+    flex-basis: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .workflow-editor-leftbar,
+  .workflow-editor-rightbar {
+    display: none;
+  }
+}
+
+/* React Flow dark theme tweaks */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-edge-stroke-default: #a8c3de;
+  --xy-controls-button-background-color: #ffffff;
+  --xy-controls-button-color: #0d253d;
+  --xy-controls-button-border-color: #e3e8ee;
+  --xy-minimap-background-color: #f6f9fc;
+}
+.react-flow__attribution {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

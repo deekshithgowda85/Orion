@@ -1,0 +1,43 @@
+# Layer 4 additions. Merge with your existing Layer 1-3 compose file:
+#   docker compose -f docker-compose.yml -f docker-compose.api.yml up --build
+#
+# ASSUMES your existing compose file already defines services named `temporal` and `redis`.
+# If yours are named differently, change TEMPORAL_HOST / REDIS_URL / depends_on below.
+# Neon is hosted Postgres - there is no database container.
+#
+# agent_service/.env and bff_gateway/.env must exist (copy the .env.example files). The `environment:` values
+# below override the matching keys in those files so container-to-container hostnames are always correct.
+
+services:
+  agent_service:
+    build:
+      context: ./agent_service
+      dockerfile: Dockerfile
+    env_file:
+      - ./agent_service/.env
+    environment:
+      TEMPORAL_HOST: temporal:7233
+      REDIS_URL: redis://redis:6379/0
+      BFF_ORIGIN: http://bff_gateway:3001
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - temporal
+    restart: unless-stopped
+
+  bff_gateway:
+    build:
+      context: ./bff_gateway
+      dockerfile: Dockerfile
+    env_file:
+      - ./bff_gateway/.env
+    environment:
+      FASTAPI_BASE_URL: http://agent_service:8000
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "3001:3001"
+    depends_on:
+      - agent_service
+      - redis
+    restart: unless-stopped

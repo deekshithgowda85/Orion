@@ -1,0 +1,131 @@
+name: orion
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-temporal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-temporal}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-temporal}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD:-temporal}
+      POSTGRES_SEEDS: postgres
+      DEFAULT_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+    ports:
+      - "${TEMPORAL_PORT:-7234}:7233"
+    healthcheck:
+      test: ["CMD-SHELL", "tctl --address temporal:7233 cluster health | grep -q SERVING"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "${TEMPORAL_UI_PORT:-8081}:8080"
+
+  worker:
+    build:
+      context: ./agent-l2
+      dockerfile: Dockerfile
+    env_file:
+      - path: ./agent-l2/.env
+        required: false
+    environment:
+      TEMPORAL_HOST: temporal:7233
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      temporal:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  agent-service:
+    build:
+      context: ./api-server/agent_service
+      dockerfile: Dockerfile
+    env_file:
+      - path: ./api-server/agent_service/.env
+        required: false
+    environment:
+      TEMPORAL_HOST: temporal:7233
+      REDIS_URL: redis://redis:6379/0
+      BFF_ORIGIN: http://bff:3001
+    depends_on:
+      temporal:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  bff:
+    build:
+      context: ./api-server/bff_gateway
+      dockerfile: Dockerfile
+    env_file:
+      - path: ./api-server/bff_gateway/.env
+        required: false
+    environment:
+      FASTAPI_BASE_URL: http://agent-service:8000
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - agent-service
+      - redis
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_MOCK_MODE: ${NEXT_PUBLIC_MOCK_MODE:-true}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-pk_test_placeholder}
+    environment:
+      BFF_URL: http://bff:3001
+    depends_on:
+      - bff
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres-data:
+  redis-data:
