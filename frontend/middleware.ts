@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { MOCK_MODE } from "@/lib/mock-mode";
+import { DEMO_COOKIE } from "@/lib/mock-auth";
 
 /** Only the Clerk sign-in / sign-up pages are public. Everything else — pages AND /api/* — requires a session. */
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
@@ -18,7 +19,23 @@ const clerk = clerkMiddleware(async (auth, req) => {
   await auth.protect();
 });
 
-export default MOCK_MODE ? () => NextResponse.next() : clerk;
+/** Demo mode (no Clerk): pages need the demo-login cookie; the mock /api/* data stays open. */
+function mockGate(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
+  if (pathname.startsWith("/api/")) return NextResponse.next();
+
+  const signedIn = Boolean(req.cookies.get(DEMO_COOKIE)?.value);
+  const isAuthPage = pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
+
+  if (isAuthPage) return signedIn ? NextResponse.redirect(new URL("/", req.url)) : NextResponse.next();
+  if (signedIn) return NextResponse.next();
+
+  const url = new URL("/sign-in", req.url);
+  if (pathname !== "/") url.searchParams.set("redirect_url", pathname + search);
+  return NextResponse.redirect(url);
+}
+
+export default MOCK_MODE ? mockGate : clerk;
 
 export const config = {
   matcher: [
